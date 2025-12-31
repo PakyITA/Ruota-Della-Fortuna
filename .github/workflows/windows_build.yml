@@ -24,7 +24,7 @@ jobs:
 
     - name: Build EXE
       run: |
-        python -m PyInstaller --noconfirm --onefile --windowed --name "RuotaDellaFortuna_Win" --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." ruota_fortuna.py
+        python -m PyInstaller --noconfirm --onefile --windowed --name "RuotaDellaFortuna_Win" --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." ruota_fortuna3.py
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
