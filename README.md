@@ -1,16 +1,17 @@
-# Ruota della Fortuna - Python Edition 🎡
-Un clone del famoso gioco televisivo realizzato in Python con PyQt5.
+# 🎡 Gira la Ruota - Game Edition v1.0.1
 
-## Caratteristiche
-- Grafica a tutto schermo con intro animata.
-- Gestione di 3 giocatori con portafoglio e classifica finale.
-- Editor di frasi integrato (aggiunta, rimozione e modifica manuale JSON).
-- Salvataggio automatico del database nella cartella Documenti.
+Benvenuti in **Gira la Ruota**, un gioco interattivo ispirato al celebre show televisivo, sviluppato in Python con l'interfaccia grafica PyQt5.
 
-## Requisiti
-- Python 3.12+
-- PyQt5
+## 🚀 Caratteristiche
+- **Modalità Multigiocatore:** Supporta fino a 3 giocatori locali.
+- **Sistema di Update Automatico:** Il gioco controlla all'avvio se è disponibile una nuova versione su GitHub tramite API.
+- **Database Personalizzabile:** Aggiungi, rimuovi o modifica le frasi direttamente dall'interfaccia del gioco.
+- **Effetti Sonori e Sigla:** Un'esperienza coinvolgente con suoni per ogni azione (gira la ruota, risposta corretta/errata, vittoria).
+- **Grafica Full Screen:** Ottimizzato per una visualizzazione a tutto schermo con animazioni di dissolvenza.
 
-## Come avviare
-1. Installa le dipendenze: `pip install PyQt5`
-2. Avvia il gioco: `python ruota_fortuna.py`
+## 🛠 Installazione e Utilizzo
+Se non vuoi scaricare l'eseguibile, puoi avviare il gioco tramite Python:
+
+1. **Clona il repository:**
+   ```bash
+   git clone [https://github.com/PakyITA/Ruota-Della-Fortuna.git](https://github.com/PakyITA/Ruota-Della-Fortuna.git)
