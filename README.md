@@ -53,15 +53,6 @@ Grazie alla funzione `check_for_updates()`, tutti gli utenti che hanno una versi
 
 ---
 
----
-
-## ☕ Sostieni il Progetto
-Se ti piace la **Ruota della Fortuna** e vuoi supportare lo sviluppo di nuove versioni, puoi offrirmi un caffè con una libera donazione. Grazie di cuore per il supporto!
-
-[![Donate con PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=KDD2KERLA4K78)
-
----
-
 ## 👤 Autore
 * **PakyITA** - [Profilo GitHub](https://github.com/PakyITA)
 
