@@ -1,5 +1,19 @@
+# Cartelle create da PyInstaller (compilazione)
 build/
 dist/
-__pycache__/
 *.spec
+
+# File temporanei di Python
+__pycache__/
+*.pyc
+
+# Database locale generato durante i test
+frasi_gira_la_ruota.json
+
+# Eventuali cartelle di ambienti virtuali
+venv/
+.env
+
+# File di sistema
 .DS_Store
+Thumbs.db
