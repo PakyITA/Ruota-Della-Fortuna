@@ -27,7 +27,7 @@ jobs:
 
     - name: Build con PyInstaller
       run: |
-        pyinstaller --noconfirm --onefile --windowed --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." --name "Gira_la_Ruota_v1.1.0" "main.py"
+        pyinstaller --noconfirm --onefile --windowed --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." --name "Gira_la_Ruota_v1.1.0" "ruota_fortuna.py"
 
     - name: Crea Release e Carica EXE
       uses: softprops/action-gh-release@v2
