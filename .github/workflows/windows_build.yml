@@ -2,8 +2,8 @@ name: Build Windows EXE 1.1.6
 
 on:
   release:
-    types: [published] # Si attiva da solo quando pubblichi la release v1.1.6
-  workflow_dispatch:   # Ti permette comunque di avviarlo a mano se serve
+    types: [published]
+  workflow_dispatch: # Permette l'avvio manuale
 
 jobs:
   build-windows:
@@ -24,12 +24,14 @@ jobs:
           pip install pyinstaller PyQt5 requests
 
       - name: Build EXE
-        # Ho aggiunto il nome corretto "GiraLaRuota" e mantenuto i separatori Windows (;)
         run: pyinstaller --onefile --windowed --name "GiraLaRuota_Windows" --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." ruota_fortuna.py
 
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
         with:
+          # Se il workflow è avviato da una release, usa quel tag.
+          # Se è avviato manualmente, prova a caricarlo nella release associata al tag v1.1.6
+          tag_name: ${{ github.event.release.tag_name || 'v1.1.6' }}
           files: dist/GiraLaRuota_Windows.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
