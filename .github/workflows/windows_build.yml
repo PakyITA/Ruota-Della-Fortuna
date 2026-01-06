@@ -1,9 +1,7 @@
-name: Build Windows EXE (Pro)
+name: Build Windows EXE Automatic
 
 on:
-  release:
-    types: [created]
-  workflow_dispatch:
+  workflow_dispatch:  # build manuale quando vuoi
 
 jobs:
   build-windows:
@@ -23,19 +21,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller requests PyQt5
 
+      - name: Read version from Python file
+        id: get_version
+        run: |
+          $version = (Select-String -Path "ruota_fortuna.py" -Pattern 'VERSION_ATTUALE\s*=\s*"(.*)"').Matches[0].Groups[1].Value
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
       - name: Build EXE with PyInstaller
         run: |
-          pyinstaller ^
-            --onefile ^
-            --windowed ^
-            --name "RuotaDellaFortuna_1.1.5" ^
-            --icon "images/logo.ico" ^
-            --add-data "images;images" ^
-            --add-data "sound;sound" ^
-            --add-data "frasi.json;." ^
-            ruota_fortuna.py
+          pyinstaller --onefile --windowed --name "RuotaDellaFortuna_${{ env.VERSION }}" --icon "images/logo.ico" --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." ruota_fortuna.py
 
-      - name: Upload EXE to Release
+      - name: Upload EXE to existing Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/RuotaDellaFortuna_1.1.5.exe
+          tag_name: "v${{ env.VERSION }}"
+          files: "dist/RuotaDellaFortuna_${{ env.VERSION }}.exe"
