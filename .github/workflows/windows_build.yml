@@ -1,7 +1,7 @@
 name: Build Windows EXE Automatic
 
 on:
-  workflow_dispatch:  # build manuale quando vuoi
+  workflow_dispatch:  # permette di far partire la build manualmente
 
 jobs:
   build-windows:
