@@ -3,7 +3,12 @@ name: Build Windows EXE 1.1.6
 on:
   release:
     types: [published]
-  workflow_dispatch: # Permette l'avvio manuale
+  workflow_dispatch:
+
+# --- AGGIUNGI QUESTE RIGHE ---
+permissions:
+  contents: write
+# -----------------------------
 
 jobs:
   build-windows:
@@ -29,8 +34,6 @@ jobs:
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
         with:
-          # Se il workflow è avviato da una release, usa quel tag.
-          # Se è avviato manualmente, prova a caricarlo nella release associata al tag v1.1.6
           tag_name: ${{ github.event.release.tag_name || 'v1.1.6' }}
           files: dist/GiraLaRuota_Windows.exe
         env:
