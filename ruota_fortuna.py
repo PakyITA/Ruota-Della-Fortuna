@@ -8,26 +8,15 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QGridLayout, QMessageBox,
                              QInputDialog, QFrame, QProgressBar, QGraphicsOpacityEffect,
                              QTextEdit, QDialog)
-from PyQt5.QtCore import Qt, QTimer, QUrl, QPropertyAnimation
-from PyQt5.QtGui import QFont, QPixmap, QPainter, QColor
+from PyQt5.QtCore import Qt, QTimer, QUrl, QPropertyAnimation, QRect
+from PyQt5.QtGui import QFont, QPixmap, QPainter, QColor, QKeyEvent
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist
 
-# --- CONFIGURAZIONE VERSIONING ---
-VERSION_ATTUALE = "1.2.5"
+# --- CONFIGURAZIONE ---
+VERSION_ATTUALE = "1.1.6"
 GITHUB_REPO = "PakyITA/Ruota-Della-Fortuna"
-
-class Coriandolo:
-    def __init__(self, screen_width):
-        self.x = random.randint(0, screen_width)
-        self.y = random.randint(-800, -50)
-        self.color = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        self.size = random.randint(6, 14)
-        self.speed = random.randint(5, 11)
-        self.swing = random.uniform(-3, 3)
-
-    def caduta(self):
-        self.y += self.speed
-        self.x += self.swing
+VOCALI = set("AEIOU")
+CONSONANTI = set("BCDFGHJKLMNPQRSTVWXYZ")
 
 def resource_path(relative_path):
     try: base_path = sys._MEIPASS
@@ -58,15 +47,26 @@ def get_db_path():
         except: pass
     return db_path
 
+class Coriandolo:
+    def __init__(self, screen_width):
+        self.x = random.randint(0, screen_width)
+        self.y = random.randint(-800, -50)
+        self.color = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.size = random.randint(6, 14)
+        self.speed = random.randint(5, 11)
+        self.swing = random.uniform(-3, 3)
+    def caduta(self):
+        self.y += self.speed
+        self.x += self.swing
+
 class JsonEditorDialog(QDialog):
     def __init__(self, current_data, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Editor Manuale Database")
-        self.resize(600, 500)
+        self.setWindowTitle("Editor Database")
+        self.resize(700, 500)
         layout = QVBoxLayout(self)
         self.text_edit = QTextEdit()
         self.text_edit.setPlainText(json.dumps(current_data, indent=4, ensure_ascii=False))
-        self.text_edit.setFont(QFont("Courier", 12))
         layout.addWidget(self.text_edit)
         btns = QHBoxLayout()
         self.btn_save = QPushButton("Salva"); self.btn_cancel = QPushButton("Annulla")
@@ -74,7 +74,7 @@ class JsonEditorDialog(QDialog):
         btns.addWidget(self.btn_save); btns.addWidget(self.btn_cancel); layout.addLayout(btns)
     def get_data(self):
         try: return json.loads(self.text_edit.toPlainText())
-        except Exception as e: return str(e)
+        except: return None
 
 class SplashScreen(QWidget):
     def __init__(self):
@@ -84,54 +84,45 @@ class SplashScreen(QWidget):
         self.init_ui()
         self.showFullScreen()
         self.play_intro_music()
-        self.avvia_dissolvenza()
         self.nuova_versione = check_for_updates()
 
     def init_ui(self):
         self.layout_centrale = QVBoxLayout(self)
         self.logo_label = QLabel()
-        logo_path = resource_path(os.path.join("images", "logo.png"))
-        if os.path.exists(logo_path):
-            pix = QPixmap(logo_path)
-            self.logo_label.setPixmap(pix.scaled(QApplication.primaryScreen().size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        self.logo_label.setAlignment(Qt.AlignCenter)
+        path_logo = resource_path(os.path.join("images", "logo.png"))
+        if os.path.exists(path_logo):
+            pix = QPixmap(path_logo)
+            screen_w = QApplication.primaryScreen().size().width()
+            self.logo_label.setPixmap(pix.scaled(int(screen_w * 0.8), int(screen_w * 0.5), Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
             self.logo_label.setText("GIRA LA RUOTA")
-            self.logo_label.setStyleSheet("color: white; font-size: 60px; font-weight: bold;")
-        self.logo_label.setAlignment(Qt.AlignCenter)
+            self.logo_label.setStyleSheet("color: gold; font-size: 100px; font-weight: bold;")
         self.opacity_effect = QGraphicsOpacityEffect(self.logo_label)
         self.logo_label.setGraphicsEffect(self.opacity_effect)
         self.layout_centrale.addWidget(self.logo_label)
-        self.label_v = QLabel(f"v{VERSION_ATTUALE}", self)
-        self.label_v.setStyleSheet("color: gray; font-size: 12px;")
+        self.anim = QPropertyAnimation(self.opacity_effect, b"opacity")
+        self.anim.setDuration(2500); self.anim.setStartValue(0); self.anim.setEndValue(1); self.anim.start()
         self.btn_skip = QPushButton("SALTA INTRO ⏭", self)
-        self.btn_skip.setFixedSize(200, 60)
-        self.btn_skip.setStyleSheet("QPushButton { background-color: #FFD700; color: black; font-weight: bold; border: 2px solid white; border-radius: 15px; font-size: 16px; }")
+        self.btn_skip.setFixedSize(220, 60)
+        self.btn_skip.setStyleSheet("background-color: gold; color: black; font-weight: bold; border-radius: 15px;")
         self.btn_skip.clicked.connect(self.concludi_intro)
 
     def resizeEvent(self, event):
-        self.btn_skip.move(self.width() - 240, self.height() - 100)
-        self.label_v.move(20, self.height() - 30)
-        super().resizeEvent(event)
-
-    def avvia_dissolvenza(self):
-        self.anim = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.anim.setDuration(2000); self.anim.setStartValue(0); self.anim.setEndValue(1); self.anim.start()
+        self.btn_skip.move(self.width() - 250, self.height() - 100)
 
     def play_intro_music(self):
-        p = resource_path(os.path.join("sound", "sigla.wav"))
-        if os.path.exists(p):
-            self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(p)))
+        sigla = resource_path("sound/sigla.wav")
+        if os.path.exists(sigla):
+            self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile(sigla)))
             self.media_player.play()
             self.media_player.mediaStatusChanged.connect(lambda s: self.concludi_intro() if s == QMediaPlayer.EndOfMedia else None)
-        else: QTimer.singleShot(3000, self.concludi_intro)
-
-    def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space): self.concludi_intro()
+        else: QTimer.singleShot(4000, self.concludi_intro)
 
     def concludi_intro(self):
         self.media_player.stop()
         if self.nuova_versione:
-            QMessageBox.information(self, "Aggiornamento Disponibile", f"Nuova versione v{self.nuova_versione} pronta!")
+            QMessageBox.information(self, "Aggiornamento", f"Nuova versione v{self.nuova_versione} disponibile!")
         self.game = GiraLaRuota()
         self.game.avvia_configurazione()
         self.close()
@@ -141,25 +132,34 @@ class GiraLaRuota(QWidget):
         super().__init__()
         self.db_path = get_db_path()
         self.carica_database()
+
+        # --- LOGICA MEMORIA FRASI ---
+        self.frasi_usate = set()
+
         self.turno_attuale = 0
         self.round_corrente = 1
+        self.tot_round = 3
         self.portafogli_round = [0, 0, 0]
         self.montepremi_totale = [0, 0, 0]
         self.ha_jolly = [False, False, False]
         self.lettere_indovinate = set()
         self.is_muted = False
         self.coriandoli = []
-        
         self.timer_abilitato = True
         self.secondi_timer = 7
-
+        self.valore_ruota = 0
         self.premi_base = [100, 300, 500, 1000, "BANCAROTTA", "PASSA", 200, 400, 800, 150, 250, 600]
         self.premi_correnti = []
 
         self.timer_gioco = QTimer(); self.timer_gioco.timeout.connect(self.aggiorna_timer)
         self.timer_coriandoli = QTimer(); self.timer_coriandoli.timeout.connect(self.aggiorna_animazione_coriandoli)
+        self.timer_spin_visivo = QTimer(); self.timer_spin_visivo.timeout.connect(self.effetto_ruota_scorrimento)
 
         self.init_audio(); self.init_ui()
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() == Qt.Key_Space and self.btn_spin.isEnabled():
+            self.anim_ruota()
 
     def carica_database(self):
         try:
@@ -167,222 +167,265 @@ class GiraLaRuota(QWidget):
         except: self.database = {"GENERAL": ["GIRA LA RUOTA"]}
 
     def salva_database(self):
-        try:
-            with open(self.db_path, 'w', encoding='utf-8') as f: json.dump(self.database, f, indent=4, ensure_ascii=False)
-        except Exception as e: QMessageBox.critical(self, "Errore", f"Salvataggio fallito: {e}")
+        with open(self.db_path, 'w', encoding='utf-8') as f: json.dump(self.database, f, indent=4, ensure_ascii=False)
 
     def init_audio(self):
         self.suoni = {}
-        suoni_files = {"spin": "spin.wav", "bad": "bad.wav", "correct": "correct.wav", "vittoria": "vittoria.wav", "victory": "victory.wav"}
-        for k, v in suoni_files.items():
-            path = resource_path(os.path.join("sound", v))
+        for k in ["spin", "bad", "correct", "victory"]:
             p = QMediaPlayer()
-            p.setMedia(QMediaContent(QUrl.fromLocalFile(path)))
+            p.setMedia(QMediaContent(QUrl.fromLocalFile(resource_path(f"sound/{k}.wav"))))
             self.suoni[k] = p
         self.bg_player = QMediaPlayer()
-        bg_file = resource_path(os.path.join("sound", "background.wav"))
+        bg_file = resource_path("sound/background.wav")
         if os.path.exists(bg_file):
             self.playlist = QMediaPlaylist(); self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(bg_file)))
-            self.playlist.setPlaybackMode(QMediaPlaylist.Loop); self.bg_player.setPlaylist(self.playlist); self.bg_player.setVolume(20)
-
-    def play_sound(self, n):
-        if n in self.suoni and not self.is_muted:
-            self.suoni[n].stop(); self.suoni[n].play()
-
-    def toggle_mute(self):
-        self.is_muted = not self.is_muted
-        self.bg_player.setMuted(self.is_muted)
-        for s in self.suoni.values(): s.setMuted(self.is_muted)
-        self.btn_mute.setText("🔇" if self.is_muted else "🔊")
+            self.playlist.setPlaybackMode(QMediaPlaylist.Loop); self.bg_player.setPlaylist(self.playlist); self.bg_player.setVolume(15)
 
     def init_ui(self):
-        self.setWindowTitle(f"Gira la Ruota v{VERSION_ATTUALE}"); self.setStyleSheet("background-color: #002244;")
+        self.setWindowTitle(f"Gira la Ruota v{VERSION_ATTUALE}")
+        self.setStyleSheet("background-color: #002244;")
         layout = QVBoxLayout(self)
+
         top = QHBoxLayout()
         self.btn_set = QPushButton("🛠"); self.btn_next_phrase = QPushButton("⏭️")
         self.btn_mute = QPushButton("🔊"); self.btn_cheat = QPushButton("👁️"); self.btn_exit = QPushButton("❌")
         for b in [self.btn_set, self.btn_next_phrase, self.btn_mute, self.btn_cheat, self.btn_exit]:
-            b.setFixedSize(55, 55)
-            b.setStyleSheet("background-color: #333; color: #FFD700; border: 2px solid #FFD700; border-radius: 27px; font-size: 20px;")
-        self.btn_exit.setStyleSheet("background-color: #900; color: white; border: 2px solid white; border-radius: 27px; font-size: 20px;")
+            b.setFixedSize(60, 60); b.setFocusPolicy(Qt.NoFocus)
+            b.setStyleSheet("background-color: #333; color: gold; border: 2px solid gold; border-radius: 30px; font-size: 22px;")
+        self.btn_exit.setStyleSheet("background-color: #900; color: white; border: 2px solid white; border-radius: 30px;")
         self.btn_set.clicked.connect(self.menu_impostazioni); self.btn_next_phrase.clicked.connect(self.skip_phrase)
         self.btn_mute.clicked.connect(self.toggle_mute); self.btn_exit.clicked.connect(self.close)
-        self.btn_cheat.clicked.connect(lambda: QMessageBox.information(self, "Soluzione", f"Soluzione: {self.soluzione}"))
-        top.addWidget(self.btn_set); top.addWidget(self.btn_next_phrase); top.addWidget(self.btn_mute); top.addStretch(); top.addWidget(self.btn_cheat); top.addSpacing(10); top.addWidget(self.btn_exit); layout.addLayout(top)
+        self.btn_cheat.clicked.connect(lambda: QMessageBox.information(self, "Soluzione", f"La frase è: {self.soluzione}"))
+        top.addWidget(self.btn_set); top.addWidget(self.btn_next_phrase); top.addWidget(self.btn_mute); top.addStretch(); top.addWidget(self.btn_cheat); top.addWidget(self.btn_exit)
+        layout.addLayout(top)
 
-        self.label_info = QLabel(""); self.label_info.setStyleSheet("color: #00FFFF; font-size: 18px; font-weight: bold;"); self.label_info.setAlignment(Qt.AlignCenter); layout.addWidget(self.label_info)
-        self.label_cat = QLabel(""); self.label_cat.setAlignment(Qt.AlignCenter); self.label_cat.setStyleSheet("font-size: 24px; color: #FFD700; font-weight: bold; background: rgba(0,0,0,120); border-radius: 10px; padding: 5px;"); layout.addWidget(self.label_cat)
+        info_lay = QHBoxLayout()
+        self.label_round = QLabel("ROUND 1/3")
+        self.label_round.setStyleSheet("font-size: 24px; color: white; font-weight: bold; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 10px;")
+        self.label_cat = QLabel(""); self.label_cat.setAlignment(Qt.AlignCenter)
+        self.label_cat.setStyleSheet("font-size: 32px; color: gold; font-weight: bold; padding: 10px;")
+        info_lay.addWidget(self.label_round); info_lay.addStretch(); info_lay.addWidget(self.label_cat); info_lay.addStretch(); info_lay.addWidget(QLabel("          "))
+        layout.addLayout(info_lay)
 
-        self.grid_container = QFrame(); self.grid_layout = QGridLayout(self.grid_container); self.celle = []
+        self.grid_container = QFrame()
+        self.grid_layout = QGridLayout(self.grid_container); self.grid_layout.setSpacing(5)
+        self.celle = []
+        self.righe_config = [12, 14, 14, 12]
         for r in range(4):
             riga = []
             for c in range(14):
-                lbl = QLabel(""); lbl.setFixedSize(55, 75); lbl.setAlignment(Qt.AlignCenter); lbl.setFont(QFont("Arial", 26, QFont.Bold))
-                lbl.setStyleSheet("background-color: #003366; border: 2px solid #001122; border-radius: 5px;")
+                lbl = QLabel(""); lbl.setFixedSize(58, 78); lbl.setAlignment(Qt.AlignCenter)
+                lbl.setFont(QFont("Arial", 30, QFont.Bold))
                 self.grid_layout.addWidget(lbl, r, c); riga.append(lbl)
             self.celle.append(riga)
         layout.addWidget(self.grid_container, alignment=Qt.AlignCenter)
 
-        self.progress = QProgressBar(); self.progress.setFixedHeight(12); self.progress.setTextVisible(False); self.progress.setStyleSheet("QProgressBar::chunk { background-color: #00FF00; }"); layout.addWidget(self.progress)
-        self.label_ruota = QLabel("GIRA LA RUOTA!"); self.label_ruota.setAlignment(Qt.AlignCenter); self.label_ruota.setStyleSheet("color: white; font-size: 32px; font-weight: bold; padding: 10px; background: #000; border: 3px solid gold;"); layout.addWidget(self.label_ruota)
+        self.progress = QProgressBar(); self.progress.setFixedHeight(15); self.progress.setTextVisible(False)
+        self.progress.setStyleSheet("QProgressBar::chunk { background-color: #0F0; }")
+        layout.addWidget(self.progress)
+
+        self.label_ruota = QLabel("GIRA LA RUOTA!"); self.label_ruota.setAlignment(Qt.AlignCenter)
+        self.label_ruota.setStyleSheet("color: white; font-size: 38px; background: black; border: 3px solid gold; padding: 15px; font-weight: bold;")
+        layout.addWidget(self.label_ruota)
 
         self.lay_gio = QHBoxLayout(); self.lab_gio = []
         for i in range(3):
-            l = QLabel(""); l.setAlignment(Qt.AlignCenter); l.setMinimumWidth(260); self.lay_gio.addWidget(l); self.lab_gio.append(l)
+            l = QLabel(""); l.setAlignment(Qt.AlignCenter); l.setMinimumWidth(300)
+            self.lay_gio.addWidget(l); self.lab_gio.append(l)
         layout.addLayout(self.lay_gio)
 
         btns = QHBoxLayout()
-        self.btn_spin = QPushButton("🎡 GIRA RUOTA"); self.btn_vow = QPushButton("💵 VOCALE (-500€)"); self.btn_pass = QPushButton("✋ PASSA"); self.btn_sol = QPushButton("💡 RISOLVI")
+        self.btn_spin = QPushButton("🎡 GIRA RUOTA (Space)"); self.btn_vow = QPushButton("💵 VOCALE (-500€)")
+        self.btn_pass = QPushButton("✋ PASSA"); self.btn_sol = QPushButton("💡 RISOLVI")
         for b in [self.btn_spin, self.btn_vow, self.btn_pass, self.btn_sol]:
-            b.setFixedSize(200, 65); b.setStyleSheet("background-color: #FFD700; color: black; font-weight: bold; border-radius: 12px; font-size: 14px;"); btns.addWidget(b)
+            b.setFixedSize(260, 75); b.setFocusPolicy(Qt.NoFocus)
+            b.setStyleSheet("background-color: gold; color: black; font-weight: bold; border-radius: 15px; font-size: 18px;")
+            btns.addWidget(b)
         self.btn_spin.clicked.connect(self.anim_ruota); self.btn_vow.clicked.connect(self.buy_vowel)
-        self.btn_pass.clicked.connect(self.manual_pass); self.btn_sol.clicked.connect(self.solve); layout.addLayout(btns)
+        self.btn_pass.clicked.connect(self.manual_pass); self.btn_sol.clicked.connect(self.solve)
+        layout.addLayout(btns)
 
-    def nuovo_round(self):
-        if self.round_corrente > self.tot_round: self.classifica(); return
-        self.bg_player.play()
-        self.premi_correnti = list(self.premi_base) + ["JOLLY", "JOLLY"]
-        cat = random.choice(list(self.database.keys()))
-        self.soluzione = random.choice(self.database[cat]).upper()
-        self.categoria = cat; self.lettere_indovinate = set(); self.portafogli_round = [0, 0, 0]
-        self.label_info.setText(f"ROUND {self.round_corrente} / {self.tot_round}"); self.label_cat.setText(self.categoria); self.agg_tabellone(); self.agg_giocatori()
+    def agg_tabellone(self):
+        stile_vuoto = "background-color: transparent; border: none;"
+        stile_blu = "background-color: #003366; border: 2px solid #001122;"
+        stile_bianco = "background-color: white; border: 2px solid #000;"
+        for r in range(4):
+            for c in range(14):
+                self.celle[r][c].setText(""); self.celle[r][c].setStyleSheet(stile_vuoto)
+        parole = self.soluzione.split(" "); righe_testo = [[], [], [], []]; r_idx = 1
+        spazio_rimanente = self.righe_config[r_idx]
+        for p in parole:
+            if len(p) > spazio_rimanente:
+                r_idx += 1
+                if r_idx > 3: r_idx = 3
+                spazio_rimanente = self.righe_config[r_idx]
+            righe_testo[r_idx].append(p); spazio_rimanente -= (len(p) + 1)
+        for r in range(4):
+            num_attive = self.righe_config[r]
+            off_griglia = (14 - num_attive) // 2
+            for c in range(num_attive): self.celle[r][off_griglia + c].setStyleSheet(stile_blu)
+            if righe_testo[r]:
+                frase_riga = " ".join(righe_testo[r])
+                inizio_testo = off_griglia + (num_attive - len(frase_riga)) // 2
+                for i, char in enumerate(frase_riga):
+                    colonna_dest = inizio_testo + i
+                    if 0 <= colonna_dest < 14:
+                        lbl = self.celle[r][colonna_dest]
+                        if char != " ":
+                            lbl.setStyleSheet(stile_bianco)
+                            if char in self.lettere_indovinate or not char.isalpha():
+                                lbl.setText(char); lbl.setStyleSheet("background-color: white; color: black; border: 2px solid #000;")
 
     def avvia_configurazione(self):
         self.giocatori = []
         for i in range(3):
-            n, ok = QInputDialog.getText(self, "Setup Giocatori", f"Nome Giocatore {i+1}:")
+            n, ok = QInputDialog.getText(self, "Setup", f"Nome Giocatore {i+1}:")
             self.giocatori.append(n.strip().upper() if ok and n.strip() else f"GIOCATORE {i+1}")
-        
-        opts = ["Sì (Standard)", "No (Modalità Relax)"]
-        sc, ok_t = QInputDialog.getItem(self, "Timer", "Attivare il timer?", opts, 0, False)
-        self.timer_abilitato = (sc == "Sì (Standard)")
+        res = QMessageBox.question(self, "Timer", "Attivare il timer?", QMessageBox.Yes|QMessageBox.No)
+        self.timer_abilitato = (res == QMessageBox.Yes)
         if self.timer_abilitato:
-            sec, ok_s = QInputDialog.getInt(self, "Tempo", "Secondi per pensare:", 7, 3, 60)
-            self.secondi_timer = sec if ok_s else 7
-        
-        nr, ok = QInputDialog.getInt(self, "Configurazione", "Numero di Round:", 3, 1, 10); self.tot_round = nr if ok else 3
+            sec, _ = QInputDialog.getInt(self, "Timer", "Secondi:", 7, 3, 60); self.secondi_timer = sec
+        nr, _ = QInputDialog.getInt(self, "Round", "Quanti round?", 3, 1, 10); self.tot_round = nr
         self.showFullScreen(); self.nuovo_round()
 
-    def agg_tabellone(self):
-        for r in range(4):
-            for c in range(14): self.celle[r][c].setText(""); self.celle[r][c].setStyleSheet("background-color: #003366; border: none;")
-        parole = self.soluzione.split(" ")
-        riga, col = 1, 1
-        for p in parole:
-            if col + len(p) > 13: riga += 1; col = 1
-            if riga > 3: break
-            for char in p:
-                cella = self.celle[riga][col]
-                if char in self.lettere_indovinate or not char.isalpha():
-                    cella.setText(char); cella.setStyleSheet("background-color: white; color: black; border: 2px solid #444;")
-                else: cella.setStyleSheet("background-color: white; border: 2px solid #444;")
-                col += 1
-            col += 1
+    def nuovo_round(self):
+        if self.round_corrente > self.tot_round: self.classifica(); return
+        self.bg_player.play()
+        self.label_round.setText(f"ROUND {self.round_corrente}/{self.tot_round}")
+
+        # --- LOGICA SELEZIONE FRASE UNICA ---
+        scelte_possibili = []
+        for cat, frasi in self.database.items():
+            for f in frasi:
+                if f.upper() not in self.frasi_usate:
+                    scelte_possibili.append((cat, f.upper()))
+
+        if not scelte_possibili: # Se abbiamo finito le frasi, resetta la memoria
+            self.frasi_usate.clear()
+            cat = random.choice(list(self.database.keys()))
+            f_scelta = random.choice(self.database[cat]).upper()
+        else:
+            cat, f_scelta = random.choice(scelte_possibili)
+
+        self.frasi_usate.add(f_scelta)
+        self.categoria = cat
+        self.soluzione = f_scelta
+        # ------------------------------------
+
+        self.lettere_indovinate = set(); self.portafogli_round = [0,0,0]
+        self.label_cat.setText(self.categoria); self.agg_tabellone(); self.agg_giocatori()
+        self.btn_spin.setEnabled(True); self.btn_sol.setEnabled(True)
 
     def anim_ruota(self):
-        self.btn_spin.setEnabled(False); self.play_sound("spin")
-        self.timer_f = QTimer(); self.timer_f.timeout.connect(self.flash); self.timer_f.start(100)
+        self.btn_spin.setEnabled(False); self.btn_vow.setEnabled(False); self.btn_sol.setEnabled(False)
+        self.play_sound("spin"); self.timer_spin_visivo.start(80)
 
-    def flash(self):
+    def effetto_ruota_scorrimento(self):
         if self.suoni["spin"].state() == QMediaPlayer.PlayingState:
             self.label_ruota.setText(str(random.choice(self.premi_correnti)))
-        else:
-            self.timer_f.stop(); res = random.choice(self.premi_correnti); self.label_ruota.setText(str(res))
-            if res in ["BANCAROTTA", "PASSA"]:
-                usato = False
-                if self.ha_jolly[self.turno_attuale]:
-                    msg = f"Hai pescato {res}! Vuoi usare il JOLLY 🍀 per annullare l'effetto?"
-                    risp = QMessageBox.question(self, "Usa Jolly?", msg, QMessageBox.Yes | QMessageBox.No)
-                    if risp == QMessageBox.Yes:
-                        self.ha_jolly[self.turno_attuale] = False; usato = True; self.btn_spin.setEnabled(True); self.agg_giocatori()
-                if not usato:
-                    if res == "BANCAROTTA": self.portafogli_round[self.turno_attuale] = 0
-                    self.play_sound("bad"); self.next_turn()
-            elif res == "JOLLY":
-                self.ha_jolly[self.turno_attuale] = True
-                if "JOLLY" in self.premi_correnti: self.premi_correnti.remove("JOLLY")
-                self.premi_correnti.append(200); self.valore_ruota = 500; self.agg_giocatori()
-                QMessageBox.information(self, "JOLLY!", "Hai un Jolly! Protegge da Bancarotta o Passa.")
-                self.start_timer()
-            else: self.valore_ruota = res; self.start_timer()
+        else: self.timer_spin_visivo.stop(); self.stop_ruota()
 
-    def start_timer(self):
-        if not self.timer_abilitato:
-            self.progress.setValue(0); QTimer.singleShot(100, self.ask_letter); return
-        self.rem_t = self.secondi_timer * 10; self.progress.setMaximum(self.rem_t); self.progress.setValue(self.rem_t)
-        self.timer_gioco.start(100); QTimer.singleShot(100, self.ask_letter)
+    def stop_ruota(self):
+        res = random.choice(self.premi_correnti if self.premi_correnti else self.premi_base)
+        self.label_ruota.setText(str(res))
+        if res == "BANCAROTTA":
+            usato = False
+            if self.ha_jolly[self.turno_attuale]:
+                if QMessageBox.question(self, "Jolly", "Usi il JOLLY?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
+                    self.ha_jolly[self.turno_attuale] = False; usato = True; self.btn_spin.setEnabled(True); self.btn_sol.setEnabled(True)
+            if not usato: self.portafogli_round[self.turno_attuale] = 0; self.play_sound("bad"); self.next_turn()
+        elif res == "PASSA":
+            usato = False
+            if self.ha_jolly[self.turno_attuale]:
+                if QMessageBox.question(self, "Jolly", "Usi il JOLLY?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
+                    self.ha_jolly[self.turno_attuale] = False; usato = True; self.btn_spin.setEnabled(True); self.btn_sol.setEnabled(True)
+            if not usato: self.play_sound("bad"); self.next_turn()
+        elif res == "JOLLY":
+            self.ha_jolly[self.turno_attuale] = True
+            if "JOLLY" in self.premi_correnti: self.premi_correnti.remove("JOLLY")
+            self.valore_ruota = 500; self.start_timer(consonants_only=True)
+        else: self.valore_ruota = res; self.start_timer(consonants_only=True)
 
-    def aggiorna_timer(self):
-        self.rem_t -= 1; self.progress.setValue(self.rem_t)
-        if self.rem_t <= 0: self.timer_gioco.stop(); self.play_sound("bad"); self.next_turn()
+    def start_timer(self, consonants_only=False):
+        if self.timer_abilitato:
+            self.rem_t = self.secondi_timer * 10; self.progress.setMaximum(self.rem_t); self.timer_gioco.start(100)
+        self.ask_letter(is_vowel=False, consonants_only=consonants_only)
 
-    def ask_letter(self, is_v=False):
-        let, ok = QInputDialog.getText(self, "Lettera", "Scegli una lettera:")
+    def ask_letter(self, is_vowel=False, consonants_only=False):
+        tipo = "CONSONANTE" if consonants_only else ("VOCALE" if is_vowel else "LETTERA")
+        let, ok = QInputDialog.getText(self, "Lettera", f"Chiama una {tipo}:")
         self.timer_gioco.stop()
-        let = let.upper().strip() if ok else ""
-        if ok and len(let) == 1 and let.isalpha():
+        if ok and len(let.strip()) == 1:
+            let = let.strip().upper()
+            if consonants_only and let not in CONSONANTI: self.next_turn(); return
+            if is_vowel and let not in VOCALI: self.next_turn(); return
             if let in self.soluzione and let not in self.lettere_indovinate:
-                cnt = self.soluzione.count(let); self.lettere_indovinate.add(let)
-                if not is_v: self.portafogli_round[self.turno_attuale] += (cnt * self.valore_ruota)
-                self.play_sound("correct"); self.agg_tabellone(); self.agg_giocatori(); self.btn_spin.setEnabled(True)
+                self.lettere_indovinate.add(let)
+                if not is_vowel: self.portafogli_round[self.turno_attuale] += (self.soluzione.count(let) * self.valore_ruota)
+                self.play_sound("correct"); self.agg_tabellone(); self.agg_giocatori()
+                self.btn_spin.setEnabled(True); self.btn_sol.setEnabled(True)
             else: self.play_sound("bad"); self.next_turn()
         else: self.next_turn()
 
-    def solve(self):
-        self.timer_gioco.stop()
-        res, ok = QInputDialog.getText(self, "Risolvi", "Soluzione:")
-        if ok and res.upper().strip() == self.soluzione:
-            self.play_sound("victory"); self.avvia_coriandoli()
-            self.montepremi_totale[self.turno_attuale] += self.portafogli_round[self.turno_attuale]
-            QMessageBox.information(self, "VITTORIA", f"🏆 Bravo {self.giocatori[self.turno_attuale]}! 🏆")
-            QTimer.singleShot(4500, self.prossimo_round_dopo_festa)
-        else: self.play_sound("bad"); self.next_turn()
+    def aggiorna_timer(self):
+        self.rem_t -= 1; self.progress.setValue(self.rem_t)
+        if self.rem_t <= 0: self.timer_gioco.stop(); self.next_turn()
 
     def next_turn(self):
-        self.timer_gioco.stop(); self.turno_attuale = (self.turno_attuale + 1) % 3
-        self.btn_spin.setEnabled(True); self.agg_giocatori()
+        self.turno_attuale = (self.turno_attuale + 1) % 3
+        self.btn_spin.setEnabled(True); self.btn_sol.setEnabled(True); self.agg_giocatori()
 
     def agg_giocatori(self):
         for i in range(3):
-            att = (i == self.turno_attuale); jolly = " 🍀" if self.ha_jolly[i] else ""
-            self.lab_gio[i].setStyleSheet(f"background: {'#0F0' if att else '#333'}; color: {'#000' if att else '#FFF'}; border: 2px solid gold; border-radius: 12px; padding: 10px;")
-            self.lab_gio[i].setText(f"{self.giocatori[i]}{jolly}\nRound: {self.portafogli_round[i]}€\nTOT: {self.montepremi_totale[i]}€")
+            att = (i == self.turno_attuale); j = " 🍀" if self.ha_jolly[i] else ""
+            self.lab_gio[i].setStyleSheet(f"background: {'#0F0' if att else '#333'}; color: {'#000' if att else '#FFF'}; border: 2px solid gold; border-radius: 12px; padding: 15px; font-weight: bold;")
+            self.lab_gio[i].setText(f"{self.giocatori[i]}{j}\nRound: {self.portafogli_round[i]}€\nTot: {self.montepremi_totale[i]}€")
+        self.btn_vow.setEnabled(self.portafogli_round[self.turno_attuale] >= 500)
 
     def buy_vowel(self):
         if self.portafogli_round[self.turno_attuale] >= 500:
-            self.portafogli_round[self.turno_attuale] -= 500; self.agg_giocatori(); self.ask_letter(True)
+            self.portafogli_round[self.turno_attuale] -= 500
+            self.btn_spin.setEnabled(False); self.btn_sol.setEnabled(False); self.agg_giocatori(); self.ask_letter(is_vowel=True)
 
     def manual_pass(self):
-        if QMessageBox.question(self, 'Passa', "Cedere il turno?", QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
-            self.play_sound("bad"); self.next_turn()
+        if QMessageBox.question(self, "Passa", "Passi il turno?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes: self.next_turn()
 
     def skip_phrase(self):
-        if QMessageBox.question(self, 'Salta', "Cambiare frase?", QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes: self.nuovo_round()
+        if QMessageBox.question(self, "Salta", "Passi alla prossima frase?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes: self.nuovo_round()
 
-    def avvia_coriandoli(self):
-        self.coriandoli = [Coriandolo(self.width()) for _ in range(180)]; self.timer_coriandoli.start(30)
+    def solve(self):
+        self.timer_gioco.stop()
+        res, ok = QInputDialog.getText(self, "Risolvi", "La soluzione è:")
+        if ok and res.strip().upper() == self.soluzione:
+            self.lettere_indovinate = set(self.soluzione.replace(" ", ""))
+            self.agg_tabellone(); self.play_sound("victory")
+            self.portafogli_round[self.turno_attuale] += 2000
+            QTimer.singleShot(3000, self.sequenza_vittoria_finale)
+        else: self.play_sound("bad"); self.next_turn()
 
+    def sequenza_vittoria_finale(self):
+        self.avvia_coriandoli(); self.montepremi_totale[self.turno_attuale] += self.portafogli_round[self.turno_attuale]
+        self.agg_giocatori(); QTimer.singleShot(4000, self.incrementa_round)
+
+    def incrementa_round(self): self.round_corrente += 1; self.nuovo_round()
+
+    def avvia_coriandoli(self): self.coriandoli = [Coriandolo(self.width()) for _ in range(160)]; self.timer_coriandoli.start(30)
     def aggiorna_animazione_coriandoli(self):
         for c in self.coriandoli: c.caduta()
         if all(c.y > self.height() for c in self.coriandoli): self.timer_coriandoli.stop(); self.coriandoli = []
         self.update()
-
-    def paintEvent(self, event):
+    def paintEvent(self, e):
         if self.coriandoli:
-            painter = QPainter(self)
-            for c in self.coriandoli:
-                painter.setBrush(c.color); painter.setPen(Qt.NoPen)
-                painter.drawRect(int(c.x), int(c.y), c.size, c.size)
+            p = QPainter(self); p.setRenderHint(QPainter.Antialiasing)
+            for c in self.coriandoli: p.setBrush(c.color); p.drawRect(int(c.x), int(c.y), c.size, c.size)
 
-    def prossimo_round_dopo_festa(self): self.round_corrente += 1; self.nuovo_round()
+    def toggle_mute(self):
+        self.is_muted = not self.is_muted; self.bg_player.setMuted(self.is_muted)
+        for s in self.suoni.values(): s.setMuted(self.is_muted)
+        self.btn_mute.setText("🔇" if self.is_muted else "🔊")
 
-    def classifica(self):
-        self.bg_player.stop()
-        r = sorted(zip(self.giocatori, self.montepremi_totale), key=lambda x: x[1], reverse=True)
-        msg = "📊 CLASSIFICA 📊\n\n" + "\n".join([f"{n}: {s}€" for n, s in r])
-        if QMessageBox.question(self, "Fine", msg + "\n\nRicominciare?", QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes:
-            self.round_corrente = 1; self.montepremi_totale = [0, 0, 0]; self.nuovo_round()
-        else: self.close()
+    def play_sound(self, n):
+        if n in self.suoni and not self.is_muted: self.suoni[n].stop(); self.suoni[n].play()
 
     def menu_impostazioni(self):
         d = JsonEditorDialog(self.database, self)
@@ -390,9 +433,23 @@ class GiraLaRuota(QWidget):
             new = d.get_data()
             if isinstance(new, dict): self.database = new; self.salva_database()
 
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Space and self.btn_spin.isEnabled(): self.anim_ruota()
-        elif e.key() == Qt.Key_Escape: self.close()
+    def classifica(self):
+        self.bg_player.stop()
+        risultati = sorted(zip(self.giocatori, self.montepremi_totale), key=lambda x: x[1], reverse=True)
+        testo = "📊 CLASSIFICA FINALE 📊\n\n"
+        for i, (n, p) in enumerate(risultati):
+            m = "🥇 " if i == 0 else ("🥈 " if i == 1 else "🥉 ")
+            testo += f"{m}{n}: {p}€\n"
+        testo += "\nVuoi iniziare una nuova partita?"
+        if QMessageBox.question(self, "Fine Gioco", testo, QMessageBox.Yes|QMessageBox.No) == QMessageBox.Yes: self.reset_totale_gioco()
+        else: self.close()
+
+    def reset_totale_gioco(self):
+        self.montepremi_totale = [0, 0, 0]; self.portafogli_round = [0, 0, 0]
+        self.ha_jolly = [False, False, False]; self.round_corrente = 1; self.turno_attuale = 0
+        self.lettere_indovinate = set(); self.avvia_configurazione()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv); splash = SplashScreen(); sys.exit(app.exec_())
+    app = QApplication(sys.argv)
+    splash = SplashScreen()
+    sys.exit(app.exec_())
