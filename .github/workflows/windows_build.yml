@@ -1,39 +1,47 @@
-name: Build EXE
+name: Build Windows EXE
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*' # Si attiva quando crei un tag versione (es. v1.2.5)
+  workflow_dispatch: # Permette di avviarlo manualmente per test
 
 jobs:
   build:
     runs-on: windows-latest
-    permissions:
-      contents: write # Permesso fondamentale per creare la release
 
     steps:
-    - name: Checkout codice
+    - name: Checkout del codice
       uses: actions/checkout@v4
 
-    - name: Setup Python
+    - name: Setup Python 3.12
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.12'
 
-    - name: Installa dipendenze
+    - name: Installazione dipendenze
       run: |
         python -m pip install --upgrade pip
         pip install PyQt5 requests pyinstaller
 
-    - name: Build con PyInstaller
+    - name: Creazione EXE con PyInstaller
       run: |
-        pyinstaller --noconfirm --onefile --windowed --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." --name "Gira_la_Ruota_v1.1.0" "ruota_fortuna.py"
+        python -m PyInstaller --noconfirm --onefile --windowed --name "GiraLaRuota_Windows" `
+        --add-data "images;images" `
+        --add-data "sound;sound" `
+        --add-data "frasi.json;." `
+        ruota_fortuna.py
 
-    - name: Crea Release e Carica EXE
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Caricamento Artefatto (EXE)
+      uses: actions/upload-artifact@v4
       with:
-        files: dist/Gira_la_Ruota_v1.1.0.exe
-        generate_release_notes: true
+        name: GiraLaRuota_Windows_Build
+        path: dist/GiraLaRuota_Windows.exe
+
+    - name: Aggiunta EXE alla Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/GiraLaRuota_Windows.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
