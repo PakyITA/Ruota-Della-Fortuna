@@ -1,4 +1,4 @@
-# 🎡 Ruota Della Fortuna - Game Edition v1.0.1
+# 🎡 Ruota Della Fortuna - Game Edition v1.1.5
 
 Benvenuti in **Ruota Della Fortuna**, un gioco interattivo ispirato al celebre show televisivo, sviluppato in Python utilizzando la libreria grafica **PyQt5**.
 
@@ -18,7 +18,7 @@ Benvenuti in **Ruota Della Fortuna**, un gioco interattivo ispirato al celebre s
 Segui questi semplici passaggi per avviare il gioco sul tuo PC senza installare nulla:
 
 1.  **Vai alla sezione Release:** Clicca su [Releases](https://github.com/PakyITA/Ruota-Della-Fortuna/releases) nella colonna a destra di questa pagina.
-2.  **Scarica l'eseguibile:** Cerca l'ultimo aggiornamento (v1.0.1) e scarica il file chiamato `GiraLaRuota_v1.0.1.exe`.
+2.  **Scarica l'eseguibile:** Cerca l'ultimo aggiornamento (v1.0.1) e scarica il file chiamato `GiraLaRuota_v1.1.5.exe`.
 3.  **Avvio:** Fai doppio clic sul file scaricato.
     * *Nota:* Se Windows mostra l'avviso "PC protetto da Windows", clicca su **Ulteriori informazioni** e poi su **Esegui comunque**.
 4.  **Divertiti:** Il gioco creerà automaticamente un file `frasi_gira_la_ruota.json` nella tua cartella *Documenti* per salvare le tue frasi personalizzate.
