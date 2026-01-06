@@ -34,7 +34,7 @@ jobs:
 
       # 5️⃣ Upload EXE come artifact
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: RuotaDellaFortuna-1.1.5
           path: dist/RuotaDellaFortuna.exe
