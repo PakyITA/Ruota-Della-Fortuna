@@ -3,8 +3,7 @@ name: Build Windows EXE
 on:
   release:
     types: [created]
-  workflow_dispatch:
-
+  workflow_dispatch:  # permette di far partire la build manualmente
 
 jobs:
   build-windows:
@@ -25,15 +24,7 @@ jobs:
           pip install pyinstaller requests PyQt5
 
       - name: Build EXE with PyInstaller
-        run: |
-          pyinstaller ^
-            --onefile ^
-            --windowed ^
-            --name "RuotaDellaFortuna" ^
-            --add-data "images;images" ^
-            --add-data "sound;sound" ^
-            --add-data "frasi.json;." ^
-            ruota_fortuna.py
+        run: pyinstaller --onefile --windowed --name "RuotaDellaFortuna" --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." ruota_fortuna.py
 
       - name: Upload EXE to Release
         uses: softprops/action-gh-release@v2
