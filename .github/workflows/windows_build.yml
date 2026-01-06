@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build Windows EXE 1.1.5
 
 on:
   workflow_dispatch:
@@ -8,29 +8,22 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # 1️⃣ Checkout del repo
+      - uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      # 2️⃣ Setup Python
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
+      # 3️⃣ Installa dipendenze
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller PyQt5 requests
 
-      - name: Read version from Python file
-        id: get_version
-        run: |
-          $match = Select-String -Path "ruota_fortuna.py" -Pattern 'VERSION_ATTUALE\s*=\s*"(.*)"'
-          if ($match -eq $null) { Write-Error "Version not found!"; exit 1 }
-          $version = $match.Matches[0].Groups[1].Value
-          echo "VERSION=$version" >> $env:GITHUB_ENV
-          Write-Host "Detected version: $version"
-
-      - name: Build EXE with PyInstaller
+      # 4️⃣ Build EXE
+      - name: Build EXE
         run: |
           pyinstaller --onefile --windowed `
                       --name "RuotaDellaFortuna" `
@@ -39,16 +32,20 @@ jobs:
                       --add-data "frasi.json;." `
                       ruota_fortuna.py
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      # 5️⃣ Upload EXE come artifact (backup in caso release fallisca)
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: v${{ env.VERSION }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: RuotaDellaFortuna-1.1.5
+          path: dist/RuotaDellaFortuna.exe
 
-      - name: Upload EXE to Release
-        uses: softprops/action-gh-release@v1
+      # 6️⃣ Carica asset su release esistente
+      - name: Upload to GitHub Release
+        uses: ncipollo/release-action@v1
         with:
-          files: dist/RuotaDellaFortuna.exe
+          tag: v1.1.5            # tag della release esistente
+          release-name: "v1.1.5" # nome della release
+          assets: dist/RuotaDellaFortuna.exe
+          overwrite: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }} # PAT con permessi repo
