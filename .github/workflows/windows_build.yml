@@ -32,20 +32,9 @@ jobs:
                       --add-data "frasi.json;." `
                       ruota_fortuna.py
 
-      # 5️⃣ Upload EXE come artifact (backup in caso release fallisca)
+      # 5️⃣ Upload EXE come artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: RuotaDellaFortuna-1.1.5
           path: dist/RuotaDellaFortuna.exe
-
-      # 6️⃣ Carica asset su release esistente
-      - name: Upload to GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: v1.1.5            # tag della release esistente
-          release-name: "v1.1.5" # nome della release
-          assets: dist/RuotaDellaFortuna.exe
-          overwrite: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }} # PAT con permessi repo
