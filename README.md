@@ -57,6 +57,12 @@ Grazie alla funzione `check_for_updates()`, tutti gli utenti che hanno una versi
 * **ESC**: Chiudi il gioco.
 * **ENTER**: Salta l'introduzione.
 
+<p align="center">
+  <a href="https://www.paypal.me/PakyITA">
+    <img src="https://img.shields.io/badge/Donate-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="Donate con PayPal" />
+  </a>
+</p>
+
 ---
 
 ## 👤 Autore
