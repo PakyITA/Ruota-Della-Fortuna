@@ -9,10 +9,12 @@ jobs:
 
     steps:
       # 1️⃣ Checkout del repo
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       # 2️⃣ Setup Python
-      - uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
@@ -24,16 +26,10 @@ jobs:
 
       # 4️⃣ Build EXE
       - name: Build EXE
-        run: |
-          pyinstaller --onefile --windowed `
-                      --name "RuotaDellaFortuna" `
-                      --add-data "images;images" `
-                      --add-data "sound;sound" `
-                      --add-data "frasi.json;." `
-                      ruota_fortuna.py
+        run: pyinstaller --onefile --windowed --name "RuotaDellaFortuna" --add-data "images;images" --add-data "sound;sound" --add-data "frasi.json;." ruota_fortuna.py
 
       # 5️⃣ Upload EXE come artifact
-      - name: Upload artifact
+      - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
           name: RuotaDellaFortuna-1.1.5
