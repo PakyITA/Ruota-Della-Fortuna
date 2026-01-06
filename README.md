@@ -1,4 +1,4 @@
-## ULTIMA RELEASE DISPONIBILE V1.1.6
+## ULTIMA RELEASE DISPONIBILE V1.1.6 https://github.com/PakyITA/Ruota-Della-Fortuna/releases/tag/v1.1.6
 
 # 🎡 Ruota Della Fortuna - Game Edition v1.1.5
 
