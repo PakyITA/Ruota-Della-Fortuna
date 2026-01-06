@@ -1,5 +1,10 @@
 # 🎡 Ruota Della Fortuna - Game Edition v1.1.5
 
+<p float="left">
+  <img src="images/logo.png" width="250" />
+  <img src="images/splash.png" width="250" />
+</p>
+
 Benvenuti in **Ruota Della Fortuna**, un gioco interattivo ispirato al celebre show televisivo, sviluppato in Python utilizzando la libreria grafica **PyQt5**.
 
 ---
