@@ -13,7 +13,7 @@ from PyQt5.QtGui import QFont, QPixmap, QPainter, QColor
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent, QMediaPlaylist, QSound
 
 # --- CONFIGURAZIONE VERSIONING ---
-VERSION_ATTUALE = "1.1.4"
+VERSION_ATTUALE = "1.1.5"
 GITHUB_REPO = "PakyITA/Ruota-Della-Fortuna"
 
 # --- CLASSE SUPPORTO CORIANDOLI ---
